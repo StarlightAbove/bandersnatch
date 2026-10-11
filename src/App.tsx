@@ -285,8 +285,8 @@ function App() {
         <div className="brand">
           <span className="glyph">S</span>
           <div>
-            <div className="brand-name">SEVASTOLINK</div>
-            <div className="brand-sub">SEVASTOPOL · TERMINAL BX-01</div>
+            <div className="brand-name">BANDERSNATCH</div>
+            <div className="brand-sub">BNDSTCH STN · TERMINAL BX-01</div>
           </div>
         </div>
         <div className={`banner ${alert ? 'on' : ''}`}>
