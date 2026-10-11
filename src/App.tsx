@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import './App.css'
+import { useSky, type SkySat, type SkyStatus } from './sky'
 
 type Tab = 'status' | 'systems' | 'comms' | 'logs' | 'control'
 type Level = 'info' | 'warn' | 'alert'
@@ -140,26 +141,65 @@ function Meter({ label, value, unit = '%', warn = 75 }: {
   )
 }
 
-function Tracker() {
-  const [blips, setBlips] = useState<{ x: number; y: number; id: number }[]>([])
-  useEffect(() => {
-    const id = setInterval(() => {
-      setBlips(
-        Math.random() < 0.6
-          ? [{ x: 20 + Math.random() * 60, y: 15 + Math.random() * 45, id: Date.now() }]
-          : [],
-      )
-    }, 2400)
-    return () => clearInterval(id)
-  }, [])
+const SKY_LABEL: Record<SkyStatus, string> = {
+  locating: 'ACQUIRING POSITION',
+  fetching: 'LOADING ORBITS',
+  tracking: 'TRACKING',
+  'no-position': 'NO POSITION FIX',
+  'no-orbits': 'NO ORBITAL DATA',
+}
+
+function SkyTracker({ sky }: { sky: ReturnType<typeof useSky> }) {
+  const { status, observer, sats } = sky
+  // Polar sky plot: zenith at centre, horizon at the rim, north up.
+  const plot = (s: SkySat) => {
+    const r = ((90 - s.el) / 90) * 45
+    const a = (s.az * Math.PI) / 180
+    return { x: 50 + r * Math.sin(a), y: 50 - r * Math.cos(a) }
+  }
+  const lead = sats[0]
 
   return (
-    <div className="tracker">
-      <div className="tracker-sweep" />
-      {blips.map((b) => (
-        <span key={b.id} className="blip" style={{ left: `${b.x}%`, top: `${b.y}%` }} />
-      ))}
-      <div className="tracker-label">MOTION · {blips.length ? `${Math.hypot(blips[0].x - 50, 100 - blips[0].y).toFixed(0)}M` : '--'}</div>
+    <div className="sky">
+      <div className="tracker">
+        <div className="tracker-sweep" />
+        <svg viewBox="0 0 100 100" className="sky-plot" aria-hidden="true">
+          <circle cx="50" cy="50" r="45" />
+          <circle cx="50" cy="50" r="30" />
+          <circle cx="50" cy="50" r="15" />
+          <line x1="50" y1="5" x2="50" y2="95" />
+          <line x1="5" y1="50" x2="95" y2="50" />
+          <text x="50" y="4">N</text>
+          <text x="98" y="51.5">E</text>
+          <text x="50" y="99.5">S</text>
+          <text x="2" y="51.5">W</text>
+          {sats.map((s) => {
+            const { x, y } = plot(s)
+            return <circle key={s.id} className={s === lead ? 'sat lead' : 'sat'} cx={x} cy={y} r={s === lead ? 2.2 : 1.4} />
+          })}
+        </svg>
+      </div>
+      <div className="sky-head">
+        <span>SATS OVERHEAD</span>
+        <span className="sky-count">{status === 'tracking' ? sats.length : '--'}</span>
+      </div>
+      <div className="sky-list">
+        {status === 'tracking' ? (
+          sats.slice(0, 4).map((s) => (
+            <div key={s.id} className="sky-row">
+              <span className="sky-name">{s.name}</span>
+              <span className="dim">{s.el.toFixed(0)}°</span>
+            </div>
+          ))
+        ) : (
+          <div className={status.startsWith('no-') ? 'sky-err' : 'cursor'}>{SKY_LABEL[status]}</div>
+        )}
+      </div>
+      {observer && (
+        <div className="sky-obs dim">
+          {observer.lat.toFixed(2)}, {observer.lon.toFixed(2)} · {observer.source}
+        </div>
+      )}
     </div>
   )
 }
@@ -212,6 +252,7 @@ function App() {
   const addLog = useCallback((m: string, level: Level = 'info') => {
     setLog((l) => [...l.slice(-60), { id: Date.now() + Math.random(), time: stamp(), msg: m, level }])
   }, [])
+  const sky = useSky(addLog)
 
   // Hook point for real hardware: send actions to a local backend here.
   const action = (name: string) => addLog(`CMD > ${name}`)
@@ -285,7 +326,7 @@ function App() {
               <Meter label="CORE TEMP" value={tel.temp} unit="°C" warn={70} />
               <Meter label="UPLINK" value={tel.net} />
             </div>
-            <Tracker />
+            <SkyTracker sky={sky} />
           </div>
         )}
 

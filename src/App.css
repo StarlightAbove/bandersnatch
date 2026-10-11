@@ -177,7 +177,7 @@
 .status {
   flex: 1;
   display: grid;
-  grid-template-columns: 1fr 150px;
+  grid-template-columns: 1fr 180px;
   gap: 12px;
   min-height: 0;
 }
@@ -220,56 +220,103 @@
   box-shadow: 0 0 6px var(--amber);
 }
 
-/* Motion tracker */
+/* Satellite sky plot */
+.sky {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 0;
+  font-size: 11px;
+}
+
 .tracker {
   position: relative;
-  align-self: center;
+  width: 100%;
   aspect-ratio: 1;
-  border: 1px solid var(--line);
-  border-radius: 50% 50% 0 0;
+  border-radius: 50%;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 50% 100%, transparent 0 24%, var(--line) 24.5% 25%, transparent 25.5% 49%, var(--line) 49.5% 50%, transparent 50.5% 74%, var(--line) 74.5% 75%, transparent 75.5%),
-    var(--bg);
+  background: var(--bg);
 }
 
 .tracker-sweep {
   position: absolute;
-  left: 0;
-  bottom: -100%;
-  width: 100%;
-  height: 200%;
-  background: conic-gradient(from 0deg, rgba(156, 242, 207, 0.35), transparent 60deg);
+  inset: 5%;
+  background: conic-gradient(from 0deg, rgba(156, 242, 207, 0.3), transparent 60deg);
   border-radius: 50%;
-  animation: sweep 2.4s linear infinite;
+  animation: sweep 4s linear infinite;
 }
 
 @keyframes sweep {
-  from { transform: rotate(-90deg); }
-  to { transform: rotate(270deg); }
+  to { transform: rotate(360deg); }
 }
 
-.blip {
+.sky-plot {
   position: absolute;
-  width: 8px;
-  height: 8px;
-  margin: -4px;
-  border-radius: 50%;
-  background: var(--phos-hi);
-  box-shadow: 0 0 10px var(--phos);
-  animation: fade 2.4s ease-out forwards;
+  inset: 0;
+  overflow: visible;
 }
 
-@keyframes fade {
-  to { opacity: 0; transform: scale(1.8); }
+.sky-plot circle,
+.sky-plot line {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 0.5;
 }
 
-.tracker-label {
-  position: absolute;
-  bottom: 4px;
-  width: 100%;
-  text-align: center;
-  font-size: 11px;
+.sky-plot text {
+  fill: var(--phos-dim);
+  font-size: 5px;
+  text-anchor: middle;
+  text-shadow: none;
+}
+
+.sky-plot .sat {
+  fill: var(--phos);
+  stroke: none;
+}
+
+.sky-plot .sat.lead {
+  fill: var(--phos-hi);
+  filter: drop-shadow(0 0 2px var(--phos));
+  animation: blink 1.2s steps(2) infinite;
+}
+
+.sky-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 1px dashed var(--line);
+}
+
+.sky-count {
+  font-size: 18px;
+  color: var(--phos-hi);
+}
+
+.sky-list {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.sky-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.sky-name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.sky-err {
+  color: var(--amber);
+}
+
+.sky-obs {
+  font-size: 9px;
 }
 
 /* Systems */
