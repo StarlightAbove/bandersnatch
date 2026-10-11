@@ -1,4 +1,11 @@
-@import '@fontsource/share-tech-mono';
+/* Vendored locally so the kiosk has no npm or network dependency for it (SIL OFL). */
+@font-face {
+  font-family: 'Share Tech Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('./assets/fonts/share-tech-mono-latin-400-normal.woff2') format('woff2');
+}
 
 :root {
   --bg: #030806;
