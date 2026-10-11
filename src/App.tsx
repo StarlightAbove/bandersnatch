@@ -15,11 +15,11 @@ const TABS: { id: Tab; code: string; label: string }[] = [
 ]
 
 const BOOT_LINES = [
-  'SEEGSON BIOS v4.11 ........................ OK',
+  'B&L BIOS v4.11 ........................ OK',
   'MEMORY CHECK 8192MB ....................... OK',
-  'MOUNTING /SEVASTOPOL/CORE ................. OK',
+  'MOUNTING /BNDSNTCH/CORE ................. OK',
   'APOLLO LINK HANDSHAKE ..................... OK',
-  'LOADING SEVASTOLINK INTERFACE .............',
+  'LOADING BANDERSNATCH INTERFACE .............',
   'WELCOME, OPERATOR.',
 ]
 
@@ -30,9 +30,9 @@ const MESSAGES = [
     body: 'All personnel are reminded that the Spire is off-limits after shift change. Marshal patrols have been doubled. Report any unauthorised access through this terminal.',
   },
   {
-    from: 'SEEGSON IT',
+    from: 'B&L IT',
     subject: 'SCHEDULED MAINTENANCE',
-    body: 'Sevastolink services will be intermittent during the next maintenance cycle. Save all work locally. Do not power-cycle terminals during firmware transfer.',
+    body: 'BANDERSNATCH services will be intermittent during the next maintenance cycle. Save all work locally. Do not power-cycle terminals during firmware transfer.',
   },
   {
     from: 'APOLLO',
@@ -103,8 +103,8 @@ function Boot({ onDone }: { onDone: () => void }) {
       <div className="boot-logo">
         <span className="glyph">S</span>
         <div>
-          <div className="boot-title">SEVASTOLINK</div>
-          <div className="boot-sub">SEEGSON CORPORATION · SEVASTOPOL STATION</div>
+          <div className="boot-title">BANDERSNATCH</div>
+          <div className="boot-sub">B&L CORPORATION · BNDSNTCH STATION</div>
         </div>
       </div>
       <pre className="boot-text">
@@ -243,7 +243,7 @@ function App() {
   const [toggles, setToggles] = useState<Record<string, boolean>>({ LIGHTS: true, FANS: true })
   const [alert, setAlert] = useState(false)
   const [log, setLog] = useState<LogEntry[]>(() => [
-    { id: 0, time: stamp(), msg: 'SEVASTOLINK SESSION OPENED', level: 'info' },
+    { id: 0, time: stamp(), msg: 'BANDERSNATCH SESSION OPENED', level: 'info' },
   ])
   const now = useClock()
   const tel = useTelemetry()
@@ -315,7 +315,7 @@ function App() {
       <main className="panel">
         <div className="panel-title">
           <span>// {TABS.find((t) => t.id === tab)?.label}</span>
-          <span className="dim">SEEGSON</span>
+          <span className="dim">B&L</span>
         </div>
 
         {tab === 'status' && (
@@ -418,7 +418,7 @@ function App() {
         <span className="pulse" /> LINK ACTIVE
         <div className="ticker">
           <span>
-            {log[log.length - 1]?.msg} · SEEGSON — SYNTHETICS YOU CAN TRUST · REPORT ALL
+            {log[log.length - 1]?.msg} · B&L — SYNTHETICS YOU CAN TRUST · REPORT ALL
             MAINTENANCE ISSUES TO OPERATIONS · APOLLO IS MONITORING ·
           </span>
         </div>
