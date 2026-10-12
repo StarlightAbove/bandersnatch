@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import './App.css'
 import { useSky, type SkySat, type SkyStatus } from './sky'
+import { usePulse, type PulseReading, type PulseStatus } from './pulse'
 
 type Tab = 'status' | 'systems' | 'comms' | 'logs' | 'control'
 type Level = 'info' | 'warn' | 'alert'
@@ -204,6 +205,64 @@ function SkyTracker({ sky }: { sky: ReturnType<typeof useSky> }) {
   )
 }
 
+type ScanMode = 'orbit' | 'pulse'
+const SCAN_MODE_KEY = 'scan.mode'
+
+const PULSE_LABEL: Record<PulseStatus, string> = {
+  connecting: 'LINKING TO DAEMON',
+  offline: 'PULSE DAEMON OFFLINE',
+  calibrating: 'CALIBRATING',
+  tracking: 'SEARCHING',
+  motion: 'MOTION · HOLD STILL',
+  flat: 'NO SIGNAL VARIATION',
+  'no-signal': 'NO WIFI FRAMES',
+  error: 'SENSOR ERROR',
+}
+
+function PulseScanner({ reading }: { reading: PulseReading }) {
+  const { status, trace, bpm, locked, confidence = 0, source } = reading
+  const unverified = status === 'tracking' && !locked && source === 'rssi'
+  const label =
+    status === 'tracking' && locked ? 'LOCKED' : unverified ? 'UNVERIFIED PEAK' : PULSE_LABEL[status]
+  const bad = status === 'offline' || status === 'error' || status === 'no-signal'
+  const points = trace?.length
+    ? trace.map((v, i) => `${(i / (trace.length - 1)) * 100},${20 - v * 16}`).join(' ')
+    : '0,20 100,20'
+
+  return (
+    <div className="pulse-scan">
+      <div className={`scope ${locked ? 'locked' : ''}`}>
+        <svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">
+          <polyline points={points} vectorEffect="non-scaling-stroke" />
+        </svg>
+      </div>
+      <div className="pulse-readout">
+        <span
+          className={`heart ${locked ? 'beating' : ''}`}
+          style={locked && bpm ? { animationDuration: `${60 / bpm}s` } : undefined}
+        >
+          ♥
+        </span>
+        <span className={`bpm ${unverified ? 'dim' : ''}`}>
+          {locked && bpm ? bpm : unverified && reading.peak_bpm ? `~${reading.peak_bpm}` : '--'}
+        </span>
+        <span className="dim">BPM</span>
+      </div>
+      <Meter label="LOCK" value={status === 'tracking' ? confidence * 100 : 0} warn={101} />
+      <div className={bad ? 'sky-err' : status === 'tracking' ? '' : 'cursor'}>
+        {label}
+        {status === 'calibrating' && ` ${Math.round((reading.progress ?? 0) * 100)}%`}
+      </div>
+      <div className="sky-obs dim">
+        {source === 'csi' && `SRC: CSI · ${reading.channels ?? '--'} CH`}
+        {source === 'rssi' && 'SRC: RSSI · EXPERIMENTAL'}
+        {reading.note && <div>{reading.note.toUpperCase()}</div>}
+        {reading.message && <div>{reading.message.toUpperCase()}</div>}
+      </div>
+    </div>
+  )
+}
+
 function HoldButton({ label, onFire }: { label: string; onFire: () => void }) {
   const [holding, setHolding] = useState(false)
   const timer = useRef<number | undefined>(undefined)
@@ -253,6 +312,25 @@ function App() {
     setLog((l) => [...l.slice(-60), { id: Date.now() + Math.random(), time: stamp(), msg: m, level }])
   }, [])
   const sky = useSky(addLog)
+  const [scanMode, setScanMode] = useState<ScanMode>(() => {
+    try {
+      return localStorage.getItem(SCAN_MODE_KEY) === 'pulse' ? 'pulse' : 'orbit'
+    } catch {
+      return 'orbit'
+    }
+  })
+  const pulse = usePulse(tab === 'status' && scanMode === 'pulse')
+
+  const switchScan = (mode: ScanMode) => {
+    if (mode === scanMode) return
+    setScanMode(mode)
+    try {
+      localStorage.setItem(SCAN_MODE_KEY, mode)
+    } catch {
+      // remembering the mode is a convenience only
+    }
+    addLog(mode === 'pulse' ? 'PULSEFI HEARTBEAT SCAN ENGAGED' : 'ORBITAL TRACKING ENGAGED')
+  }
 
   // Hook point for real hardware: send actions to a local backend here.
   const action = (name: string) => addLog(`CMD > ${name}`)
@@ -326,7 +404,22 @@ function App() {
               <Meter label="CORE TEMP" value={tel.temp} unit="°C" warn={70} />
               <Meter label="UPLINK" value={tel.net} />
             </div>
-            <SkyTracker sky={sky} />
+            <div className="scan">
+              <div className="scan-switch" role="group" aria-label="Scanner mode">
+                {(['orbit', 'pulse'] as const).map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    className={`btn ${scanMode === m ? 'active' : ''}`}
+                    aria-pressed={scanMode === m}
+                    onClick={() => switchScan(m)}
+                  >
+                    {m === 'orbit' ? 'ORBIT' : 'PULSE'}
+                  </button>
+                ))}
+              </div>
+              {scanMode === 'orbit' ? <SkyTracker sky={sky} /> : <PulseScanner reading={pulse} />}
+            </div>
           </div>
         )}
 

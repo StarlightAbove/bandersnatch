@@ -651,3 +651,96 @@
 @keyframes blink {
   50% { opacity: 0; }
 }
+
+/* ---------- Scanner switch (ORBIT / PULSE) ---------- */
+.scan {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+}
+
+.scan-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+
+.scan-switch .btn {
+  min-height: 40px;
+  text-align: center;
+  font-size: 13px;
+}
+
+.scan-switch .btn.active {
+  background: var(--phos);
+  color: var(--bg);
+  text-shadow: none;
+}
+
+/* ---------- PulseFi heartbeat scanner ---------- */
+.pulse-scan {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+  font-size: 11px;
+}
+
+.scope {
+  position: relative;
+  height: 110px;
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(var(--phos-faint) 1px, transparent 1px) 0 0 / 100% 25%,
+    linear-gradient(90deg, var(--phos-faint) 1px, transparent 1px) 0 0 / 10% 100%,
+    var(--bg);
+}
+
+.scope svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.scope polyline {
+  fill: none;
+  stroke: var(--phos-dim);
+  stroke-width: 1.5;
+}
+
+.scope.locked polyline {
+  stroke: var(--phos);
+  filter: drop-shadow(0 0 2px var(--phos));
+}
+
+.pulse-readout {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.bpm {
+  font-size: 40px;
+  line-height: 1;
+  color: var(--phos-hi);
+}
+
+.heart {
+  font-size: 18px;
+  color: var(--phos-dim);
+  text-shadow: none;
+}
+
+.heart.beating {
+  color: var(--red);
+  text-shadow: 0 0 8px var(--red);
+  animation: beat 1s ease-out infinite;
+}
+
+@keyframes beat {
+  0%, 100% { opacity: 0.35; }
+  15% { opacity: 1; }
+}

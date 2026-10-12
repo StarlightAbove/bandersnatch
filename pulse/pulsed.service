@@ -1,0 +1,14 @@
+[Unit]
+Description=Bandersnatch PulseFi heartbeat sensing daemon
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+# Root is needed for raw CSI capture and fast (50 Hz) ping traffic.
+# Adjust the path to where the repo lives on the Pi.
+ExecStart=/usr/bin/python3 /home/pi/bandersnatch/pulse/pulsed.py --iface wlan0 --source auto
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
